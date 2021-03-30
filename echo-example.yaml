@@ -1,0 +1,8 @@
+# Example of Echo deployment. The operator will receive this specification and will create a deployment of two "echo" pods.
+apiVersion: example.com/v1
+kind: Echo # Identifier of the resource type.
+metadata:
+  name: test-echo # Name of the "Echo" custom resource instance, may be changed to your liking
+  namespace: default # Namespace must exist and account in KUBECONFIG must have sufficient permissions
+spec:
+  replicas: 2 # Number of "Echo" pods created.

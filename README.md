@@ -10,3 +10,5 @@ Steps to run on Linux:
 1. Run the operator using `cargo run`. It will run outside of the Kubernetes cluster and connect to the Kubernetes REST API using the account inside the `KUBECONFIG` automatically.
 
 Finally, a custom `Echo` resource can be created with `kubectl apply -f echo-example.yaml`. A new deployment of two pods with `Echo` REST API service will be created. This can be checked with the `kubectl get pods` or `kubectl get deployments` command.
+
+![Usage showcase](showcase.gif)

@@ -1,6 +1,6 @@
 # Rust Kubernetes operator example
 
-A Kubernetes operator built on top of [kube-rs](https://github.com/clux/kube-rs) repository. There is an [explanatory article](https://www.pavel.cool/rust/rust-kubernetes-operators/) available.
+A Kubernetes operator built on top of [kube-rs](https://github.com/clux/kube-rs) project. There is an [explanatory article](https://www.pavel.cool/rust/rust-kubernetes-operators/) available.
 
 Steps to run on Linux:
 

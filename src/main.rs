@@ -1,5 +1,6 @@
 use futures::stream::StreamExt;
 use kube::Resource;
+use kube::ResourceExt;
 use kube::{api::ListParams, client::Client, Api};
 use kube_runtime::controller::{Context, ReconcilerAction};
 use kube_runtime::Controller;
@@ -142,7 +143,7 @@ async fn reconcile(echo: Echo, context: Context<ContextData>) -> Result<Reconcil
 fn determine_action(echo: &Echo) -> Action {
     return if echo.meta().deletion_timestamp.is_some() {
         Action::Delete
-    } else if echo.meta().finalizers.is_none() {
+    } else if echo.meta().finalizers.is_empty() {
         Action::Create
     } else {
         Action::NoOp

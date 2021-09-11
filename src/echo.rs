@@ -29,30 +29,30 @@ pub async fn deploy(
         metadata: ObjectMeta {
             name: Some(name.to_owned()),
             namespace: Some(namespace.to_owned()),
-            labels: labels.clone(),
+            labels: Some(labels.clone()),
             ..ObjectMeta::default()
         },
         spec: Some(DeploymentSpec {
             replicas: Some(replicas),
             selector: LabelSelector {
-                match_expressions: vec![],
-                match_labels: labels.clone(),
+                match_expressions: None,
+                match_labels: Some(labels.clone()),
             },
             template: PodTemplateSpec {
                 spec: Some(PodSpec {
                     containers: vec![Container {
                         name: name.to_owned(),
                         image: Some("inanimate/echo-server:latest".to_owned()),
-                        ports: vec![ContainerPort {
+                        ports: Some(vec![ContainerPort {
                             container_port: 8080,
                             ..ContainerPort::default()
-                        }],
+                        }]),
                         ..Container::default()
                     }],
                     ..PodSpec::default()
                 }),
                 metadata: Some(ObjectMeta {
-                    labels,
+                    labels: Some(labels),
                     ..ObjectMeta::default()
                 }),
             },

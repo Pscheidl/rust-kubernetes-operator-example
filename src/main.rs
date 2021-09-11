@@ -143,7 +143,12 @@ async fn reconcile(echo: Echo, context: Context<ContextData>) -> Result<Reconcil
 fn determine_action(echo: &Echo) -> Action {
     return if echo.meta().deletion_timestamp.is_some() {
         Action::Delete
-    } else if echo.meta().finalizers.is_empty() {
+    } else if echo
+        .meta()
+        .finalizers
+        .as_ref()
+        .map_or(false, |finalizers| finalizers.is_empty())
+    {
         Action::Create
     } else {
         Action::NoOp

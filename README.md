@@ -1,4 +1,5 @@
 # Rust Kubernetes operator example
+[![Rust](https://github.com/Pscheidl/rust-kubernetes-operator-example/actions/workflows/rust.yml/badge.svg)](https://github.com/Pscheidl/rust-kubernetes-operator-example/actions/workflows/rust.yml)
 
 A Kubernetes operator built on top of [kube-rs](https://github.com/clux/kube-rs) project. There is an [explanatory article](https://www.pavel.cool/rust/rust-kubernetes-operators/) available.
 

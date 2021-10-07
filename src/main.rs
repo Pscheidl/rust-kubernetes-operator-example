@@ -147,7 +147,7 @@ fn determine_action(echo: &Echo) -> Action {
         .meta()
         .finalizers
         .as_ref()
-        .map_or(false, |finalizers| finalizers.is_empty())
+        .map_or(true, |finalizers| finalizers.is_empty())
     {
         Action::Create
     } else {

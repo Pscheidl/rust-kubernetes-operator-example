@@ -28,6 +28,9 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
+    - name: Apply the custom resource definition
+      run: kubectl apply -f echoes.example.com.yaml
+
     - name: Run the operator
       run: cargo run &
 

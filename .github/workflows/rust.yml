@@ -16,7 +16,29 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: debianmaster/actions-k3s@master
+      id: k3s
+      with:
+        version: 'latest'
+
     - name: Build
       run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Apply the custom resource definition
+      run: kubectl apply -f echoes.example.com.yaml
+
+    - name: Run the operator
+      run: cargo run &
+
+    - name: Apply the custom resource after a small pause
+      run: sleep 1 && kubectl apply -f echo-example.yaml
+
+    - name: Validate that the deployment has been created after a small pause
+      run: sleep 1 && kubectl wait --for=condition=available --timeout=60s deployment/test-echo
+
+    - name: Validate that the two pods have been created
+      run: kubectl get pods | grep "test-echo"

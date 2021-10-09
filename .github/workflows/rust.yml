@@ -35,4 +35,7 @@ jobs:
       run: cargo run &
 
     - name: Apply the custom resource after a few seconds
-      run: sleep 4 && kubectl apply -f echo-example.yaml
+      run: sleep 2 && kubectl apply -f echo-example.yaml
+
+    - name: Validate that the deployment has been created after a few seconds
+      run: sleep 10 && kubectl get deployments | grep "test-echo"

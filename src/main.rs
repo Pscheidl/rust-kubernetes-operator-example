@@ -92,7 +92,7 @@ async fn reconcile(echo: Echo, context: Context<ContextData>) -> Result<Reconcil
     };
 
     // Performs action as decided by the `determine_action` function.
-    return match determine_action(&echo) {
+    return match determine_action(client.clone(), &echo).await? {
         Action::Create => {
             // Creates a deployment with `n` Echo service pods, but applies a finalizer first.
             // Finalizer is applied first, as the operator might be shut down and restarted
@@ -140,18 +140,25 @@ async fn reconcile(echo: Echo, context: Context<ContextData>) -> Result<Reconcil
 ///
 /// # Arguments
 /// - `echo`: A reference to `Echo` being reconciled to decide next action upon.
-fn determine_action(echo: &Echo) -> Action {
+async fn determine_action(client: Client, echo: &Echo) -> Result<Action, Error> {
     return if echo.meta().deletion_timestamp.is_some() {
-        Action::Delete
+        Ok(Action::Delete)
     } else if echo
         .meta()
         .finalizers
         .as_ref()
         .map_or(true, |finalizers| finalizers.is_empty())
     {
-        Action::Create
+        Ok(Action::Create)
     } else {
-        Action::NoOp
+        // Recreate the deployment if it's missing.
+        if let Some(namespace) = echo.namespace() {
+            if !echo::is_deployed(client, &echo.name(), &namespace).await? {
+                return Ok(Action::Create);
+            }
+        }
+
+        Ok(Action::NoOp)
     };
 }
 

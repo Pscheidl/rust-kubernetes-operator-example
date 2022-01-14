@@ -69,6 +69,16 @@ pub async fn deploy(
         .await
 }
 
+/// Checks if an echo deployment exists.
+pub async fn is_deployed(client: Client, name: &str, namespace: &str) -> Result<bool, Error> {
+    let deployment_api: Api<Deployment> = Api::namespaced(client, namespace);
+    let response = deployment_api.get(name).await;
+    if let Err(Error::Api(ErrorResponse { code: 404, .. })) = response {
+        return Ok(false);
+    }
+    response.map(|_| true)
+}
+
 /// Deletes an existing deployment.
 ///
 /// # Arguments:

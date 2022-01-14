@@ -2,6 +2,7 @@ use k8s_openapi::api::apps::v1::{Deployment, DeploymentSpec};
 use k8s_openapi::api::core::v1::{Container, ContainerPort, PodSpec, PodTemplateSpec};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
 use kube::api::{DeleteParams, ObjectMeta, PostParams};
+use kube::core::ErrorResponse;
 use kube::{Api, Client, Error};
 use std::collections::BTreeMap;
 
@@ -78,6 +79,12 @@ pub async fn deploy(
 /// Note: It is assumed the deployment exists for simplicity. Otherwise returns an Error.
 pub async fn delete(client: Client, name: &str, namespace: &str) -> Result<(), Error> {
     let api: Api<Deployment> = Api::namespaced(client, namespace);
-    api.delete(name, &DeleteParams::default()).await?;
-    Ok(())
+
+    let response = api.delete(name, &DeleteParams::default()).await;
+    if let Err(Error::Api(ErrorResponse { code: 404, .. })) = response {
+        // If it's missing, we can safely ignore this request.
+        return Ok(());
+    }
+
+    response.map(|_| ())
 }

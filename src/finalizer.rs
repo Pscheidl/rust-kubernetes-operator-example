@@ -16,7 +16,7 @@ pub async fn add(client: Client, name: &str, namespace: &str) -> Result<Echo, Er
     let api: Api<Echo> = Api::namespaced(client, namespace);
     let finalizer: Value = json!({
         "metadata": {
-            "finalizers": ["echoes.example.com"]
+            "finalizers": ["echoes.example.com/finalizer"]
         }
     });
 

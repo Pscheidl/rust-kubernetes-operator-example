@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use futures::stream::StreamExt;
 use kube::Resource;
 use kube::ResourceExt;
@@ -72,7 +74,10 @@ enum Action {
     NoOp,
 }
 
-async fn reconcile(echo: Echo, context: Context<ContextData>) -> Result<ReconcilerAction, Error> {
+async fn reconcile(
+    echo: Arc<Echo>,
+    context: Context<ContextData>,
+) -> Result<ReconcilerAction, Error> {
     let client: Client = context.get_ref().client.clone(); // The `Client` is shared -> a clone from the reference is obtained
 
     // The resource of `Echo` kind is required to have a namespace set. However, it is not guaranteed

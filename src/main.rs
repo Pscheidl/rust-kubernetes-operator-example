@@ -4,7 +4,7 @@ use futures::stream::StreamExt;
 use kube::Resource;
 use kube::ResourceExt;
 use kube::{api::ListParams, client::Client, Api};
-use kube_runtime::controller::{Context, ReconcilerAction};
+use kube_runtime::controller::{Action, Context};
 use kube_runtime::Controller;
 use tokio::time::Duration;
 
@@ -65,7 +65,7 @@ impl ContextData {
 }
 
 /// Action to be taken upon an `Echo` resource during reconciliation
-enum Action {
+enum EchoAction {
     /// Create the subresources, this includes spawning `n` pods with Echo service
     Create,
     /// Delete all subresources created in the `Create` phase
@@ -77,7 +77,7 @@ enum Action {
 async fn reconcile(
     echo: Arc<Echo>,
     context: Context<ContextData>,
-) -> Result<ReconcilerAction, Error> {
+) -> Result<Action, Error> {
     let client: Client = context.get_ref().client.clone(); // The `Client` is shared -> a clone from the reference is obtained
 
     // The resource of `Echo` kind is required to have a namespace set. However, it is not guaranteed
@@ -98,7 +98,7 @@ async fn reconcile(
 
     // Performs action as decided by the `determine_action` function.
     return match determine_action(&echo) {
-        Action::Create => {
+        EchoAction::Create => {
             // Creates a deployment with `n` Echo service pods, but applies a finalizer first.
             // Finalizer is applied first, as the operator might be shut down and restarted
             // at any time, leaving subresources in intermediate state. This prevents leaks on
@@ -110,12 +110,9 @@ async fn reconcile(
             finalizer::add(client.clone(), &name, &namespace).await?;
             // Invoke creation of a Kubernetes built-in resource named deployment with `n` echo service pods.
             echo::deploy(client, &echo.name(), echo.spec.replicas, &namespace).await?;
-            Ok(ReconcilerAction {
-                // Finalizer is added, deployment is deployed, re-check in 10 seconds.
-                requeue_after: Some(Duration::from_secs(10)),
-            })
-        }
-        Action::Delete => {
+            Ok(Action::requeue(Duration::from_secs(10)))
+        },
+        EchoAction::Delete => {
             // Deletes any subresources related to this `Echo` resources. If and only if all subresources
             // are deleted, the finalizer is removed and Kubernetes is free to remove the `Echo` resource.
 
@@ -128,14 +125,10 @@ async fn reconcile(
             // Once the deployment is successfully removed, remove the finalizer to make it possible
             // for Kubernetes to delete the `Echo` resource.
             finalizer::delete(client, &echo.name(), &namespace).await?;
-            Ok(ReconcilerAction {
-                requeue_after: None, // Makes no sense to delete after a successful delete, as the resource is gone
-            })
-        }
-        Action::NoOp => Ok(ReconcilerAction {
-            // The resource is already in desired state, do nothing and re-check after 10 seconds
-            requeue_after: Some(Duration::from_secs(10)),
-        }),
+            Ok(Action::await_change()) // Makes no sense to delete after a successful delete, as the resource is gone
+        },
+        // The resource is already in desired state, do nothing and re-check after 10 seconds
+        EchoAction::NoOp => Ok(Action::requeue(Duration::from_secs(10))),
     };
 }
 
@@ -145,18 +138,18 @@ async fn reconcile(
 ///
 /// # Arguments
 /// - `echo`: A reference to `Echo` being reconciled to decide next action upon.
-fn determine_action(echo: &Echo) -> Action {
+fn determine_action(echo: &Echo) -> EchoAction {
     return if echo.meta().deletion_timestamp.is_some() {
-        Action::Delete
+        EchoAction::Delete
     } else if echo
         .meta()
         .finalizers
         .as_ref()
         .map_or(true, |finalizers| finalizers.is_empty())
     {
-        Action::Create
+        EchoAction::Create
     } else {
-        Action::NoOp
+        EchoAction::NoOp
     };
 }
 
@@ -167,11 +160,9 @@ fn determine_action(echo: &Echo) -> Action {
 /// # Arguments
 /// - `error`: A reference to the `kube::Error` that occurred during reconciliation.
 /// - `_context`: Unused argument. Context Data "injected" automatically by kube-rs.
-fn on_error(error: &Error, _context: Context<ContextData>) -> ReconcilerAction {
+fn on_error(error: &Error, _context: Context<ContextData>) -> Action {
     eprintln!("Reconciliation error:\n{:?}", error);
-    ReconcilerAction {
-        requeue_after: Some(Duration::from_secs(5)),
-    }
+    Action::requeue(Duration::from_secs(5))
 }
 
 /// All errors possible to occur during reconciliation

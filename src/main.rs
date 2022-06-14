@@ -3,9 +3,12 @@ use std::sync::Arc;
 use futures::stream::StreamExt;
 use kube::Resource;
 use kube::ResourceExt;
-use kube::{api::ListParams, client::Client, Api};
-use kube_runtime::controller::{Action, Context};
-use kube_runtime::Controller;
+use kube::{
+    api::ListParams,
+    client::Client,
+    runtime::Controller,
+    runtime::controller::Action,
+    Api};
 use tokio::time::Duration;
 
 use crate::crd::Echo;
@@ -24,7 +27,7 @@ async fn main() {
 
     // Preparation of resources used by the `kube_runtime::Controller`
     let crd_api: Api<Echo> = Api::all(kubernetes_client.clone());
-    let context: Context<ContextData> = Context::new(ContextData::new(kubernetes_client.clone()));
+    let context: Arc<ContextData> = Arc::new(ContextData::new(kubernetes_client.clone()));
 
     // The controller comes from the `kube_runtime` crate and manages the reconciliation process.
     // It requires the following information:
@@ -76,9 +79,9 @@ enum EchoAction {
 
 async fn reconcile(
     echo: Arc<Echo>,
-    context: Context<ContextData>,
+    context: Arc<ContextData>,
 ) -> Result<Action, Error> {
-    let client: Client = context.get_ref().client.clone(); // The `Client` is shared -> a clone from the reference is obtained
+    let client: Client = context.client.clone(); // The `Client` is shared -> a clone from the reference is obtained
 
     // The resource of `Echo` kind is required to have a namespace set. However, it is not guaranteed
     // the resource will have a `namespace` set. Therefore, the `namespace` field on object's metadata
@@ -160,7 +163,7 @@ fn determine_action(echo: &Echo) -> EchoAction {
 /// # Arguments
 /// - `error`: A reference to the `kube::Error` that occurred during reconciliation.
 /// - `_context`: Unused argument. Context Data "injected" automatically by kube-rs.
-fn on_error(error: &Error, _context: Context<ContextData>) -> Action {
+fn on_error(error: &Error, _context: Arc<ContextData>) -> Action {
     eprintln!("Reconciliation error:\n{:?}", error);
     Action::requeue(Duration::from_secs(5))
 }

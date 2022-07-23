@@ -4,11 +4,8 @@ use futures::stream::StreamExt;
 use kube::Resource;
 use kube::ResourceExt;
 use kube::{
-    api::ListParams,
-    client::Client,
-    runtime::Controller,
-    runtime::controller::Action,
-    Api};
+    api::ListParams, client::Client, runtime::controller::Action, runtime::Controller, Api,
+};
 use tokio::time::Duration;
 
 use crate::crd::Echo;
@@ -77,10 +74,7 @@ enum EchoAction {
     NoOp,
 }
 
-async fn reconcile(
-    echo: Arc<Echo>,
-    context: Arc<ContextData>,
-) -> Result<Action, Error> {
+async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action, Error> {
     let client: Client = context.client.clone(); // The `Client` is shared -> a clone from the reference is obtained
 
     // The resource of `Echo` kind is required to have a namespace set. However, it is not guaranteed
@@ -106,15 +100,15 @@ async fn reconcile(
             // Finalizer is applied first, as the operator might be shut down and restarted
             // at any time, leaving subresources in intermediate state. This prevents leaks on
             // the `Echo` resource deletion.
-            let name = echo.name(); // Name of the Echo resource is used to name the subresources as well.
+            let name = echo.name_any(); // Name of the Echo resource is used to name the subresources as well.
 
             // Apply the finalizer first. If that fails, the `?` operator invokes automatic conversion
             // of `kube::Error` to the `Error` defined in this crate.
             finalizer::add(client.clone(), &name, &namespace).await?;
             // Invoke creation of a Kubernetes built-in resource named deployment with `n` echo service pods.
-            echo::deploy(client, &echo.name(), echo.spec.replicas, &namespace).await?;
+            echo::deploy(client, &echo.name_any(), echo.spec.replicas, &namespace).await?;
             Ok(Action::requeue(Duration::from_secs(10)))
-        },
+        }
         EchoAction::Delete => {
             // Deletes any subresources related to this `Echo` resources. If and only if all subresources
             // are deleted, the finalizer is removed and Kubernetes is free to remove the `Echo` resource.
@@ -123,13 +117,13 @@ async fn reconcile(
             // automatically converted into `Error` defined in this crate and the reconciliation is ended
             // with that error.
             // Note: A more advanced implementation would for the Deployment's existence.
-            echo::delete(client.clone(), &echo.name(), &namespace).await?;
+            echo::delete(client.clone(), &echo.name_any(), &namespace).await?;
 
             // Once the deployment is successfully removed, remove the finalizer to make it possible
             // for Kubernetes to delete the `Echo` resource.
-            finalizer::delete(client, &echo.name(), &namespace).await?;
+            finalizer::delete(client, &echo.name_any(), &namespace).await?;
             Ok(Action::await_change()) // Makes no sense to delete after a successful delete, as the resource is gone
-        },
+        }
         // The resource is already in desired state, do nothing and re-check after 10 seconds
         EchoAction::NoOp => Ok(Action::requeue(Duration::from_secs(10))),
     };

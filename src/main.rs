@@ -92,6 +92,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
         // the namespace could be checked for existence first.
         Some(namespace) => namespace,
     };
+    let name = echo.name_any(); // Name of the Echo resource is used to name the subresources as well.
 
     // Performs action as decided by the `determine_action` function.
     return match determine_action(&echo) {
@@ -100,13 +101,12 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
             // Finalizer is applied first, as the operator might be shut down and restarted
             // at any time, leaving subresources in intermediate state. This prevents leaks on
             // the `Echo` resource deletion.
-            let name = echo.name_any(); // Name of the Echo resource is used to name the subresources as well.
 
             // Apply the finalizer first. If that fails, the `?` operator invokes automatic conversion
             // of `kube::Error` to the `Error` defined in this crate.
             finalizer::add(client.clone(), &name, &namespace).await?;
             // Invoke creation of a Kubernetes built-in resource named deployment with `n` echo service pods.
-            echo::deploy(client, &echo.name_any(), echo.spec.replicas, &namespace).await?;
+            echo::deploy(client, &name, echo.spec.replicas, &namespace).await?;
             Ok(Action::requeue(Duration::from_secs(10)))
         }
         EchoAction::Delete => {
@@ -117,11 +117,11 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
             // automatically converted into `Error` defined in this crate and the reconciliation is ended
             // with that error.
             // Note: A more advanced implementation would for the Deployment's existence.
-            echo::delete(client.clone(), &echo.name_any(), &namespace).await?;
+            echo::delete(client.clone(), &name, &namespace).await?;
 
             // Once the deployment is successfully removed, remove the finalizer to make it possible
             // for Kubernetes to delete the `Echo` resource.
-            finalizer::delete(client, &echo.name_any(), &namespace).await?;
+            finalizer::delete(client, &name, &namespace).await?;
             Ok(Action::await_change()) // Makes no sense to delete after a successful delete, as the resource is gone
         }
         // The resource is already in desired state, do nothing and re-check after 10 seconds

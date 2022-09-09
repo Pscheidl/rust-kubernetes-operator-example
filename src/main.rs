@@ -131,7 +131,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
 
 /// Resources arrives into reconciliation queue in a certain state. This function looks at
 /// the state of given `Echo` resource and decides which actions needs to be performed.
-/// The finite set of possible actions is represented by the `Action` enum.
+/// The finite set of possible actions is represented by the `EchoAction` enum.
 ///
 /// # Arguments
 /// - `echo`: A reference to `Echo` being reconciled to decide next action upon.

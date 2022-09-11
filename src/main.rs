@@ -116,7 +116,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
             //First, delete the deployment. If there is any error deleting the deployment, it is
             // automatically converted into `Error` defined in this crate and the reconciliation is ended
             // with that error.
-            // Note: A more advanced implementation would for the Deployment's existence.
+            // Note: A more advanced implementation would check for the Deployment's existence.
             echo::delete(client.clone(), &name, &namespace).await?;
 
             // Once the deployment is successfully removed, remove the finalizer to make it possible
@@ -131,7 +131,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
 
 /// Resources arrives into reconciliation queue in a certain state. This function looks at
 /// the state of given `Echo` resource and decides which actions needs to be performed.
-/// The finite set of possible actions is represented by the `Action` enum.
+/// The finite set of possible actions is represented by the `EchoAction` enum.
 ///
 /// # Arguments
 /// - `echo`: A reference to `Echo` being reconciled to decide next action upon.

@@ -155,10 +155,11 @@ fn determine_action(echo: &Echo) -> EchoAction {
 /// five seconds.
 ///
 /// # Arguments
+/// - `echo`: The erroneous resource.
 /// - `error`: A reference to the `kube::Error` that occurred during reconciliation.
 /// - `_context`: Unused argument. Context Data "injected" automatically by kube-rs.
-fn on_error(error: &Error, _context: Arc<ContextData>) -> Action {
-    eprintln!("Reconciliation error:\n{:?}", error);
+fn on_error(echo: Arc<Echo>, error: &Error, _context: Arc<ContextData>) -> Action {
+    eprintln!("Reconciliation error:\n{:?}.\n{:?}", error, echo);
     Action::requeue(Duration::from_secs(5))
 }
 

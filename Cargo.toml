@@ -5,12 +5,20 @@ authors = ["Pavel Pscheidl <pavel2@pscheidl.cz>"]
 edition = "2018"
 
 [dependencies]
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] } # Macros for easy project setup and testing, multi-threaded runtime for best utilization of resources
-kube = { version = "0.77.0", default-features = true, features = ["derive", "runtime"] } # Library for talking to Kubernetes API
-k8s-openapi = { version = "0.16", default-features = false, features = ["v1_22"] } # Kube-rs depends on k8s-openapi
+tokio = { version = "1.0", features = [
+    "macros",
+    "rt-multi-thread",
+] } # Macros for easy project setup and testing, multi-threaded runtime for best utilization of resources
+kube = { version = "0.78.0", default-features = true, features = [
+    "derive",
+    "runtime",
+] } # Library for talking to Kubernetes API
+k8s-openapi = { version = "0.17", default-features = false, features = [
+    "v1_22",
+] } # Kube-rs depends on k8s-openapi
 futures = "0.3"
 # All serde dependencies are used to serialize/deserialize CRDs and other Kubernetes-related structs
 serde = "1"
 serde_json = "1.0"
 schemars = "0.8"
-thiserror = "1" # Custom Error definitions and convenient error mappings
+thiserror = "1"    # Custom Error definitions and convenient error mappings

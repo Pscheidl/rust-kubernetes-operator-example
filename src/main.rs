@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
 use futures::stream::StreamExt;
+use kube::runtime::watcher::Config;
 use kube::Resource;
 use kube::ResourceExt;
-use kube::{
-    api::ListParams, client::Client, runtime::controller::Action, runtime::Controller, Api,
-};
+use kube::{client::Client, runtime::controller::Action, runtime::Controller, Api};
 use tokio::time::Duration;
 
 use crate::crd::Echo;
@@ -29,10 +28,10 @@ async fn main() {
     // The controller comes from the `kube_runtime` crate and manages the reconciliation process.
     // It requires the following information:
     // - `kube::Api<T>` this controller "owns". In this case, `T = Echo`, as this controller owns the `Echo` resource,
-    // - `kube::api::ListParams` to select the `Echo` resources with. Can be used for Echo filtering `Echo` resources before reconciliation,
+    // - `kube::runtime::watcher::Config` can be adjusted for precise filtering of `Echo` resources before the actual reconciliation, e.g. by label,
     // - `reconcile` function with reconciliation logic to be called each time a resource of `Echo` kind is created/updated/deleted,
     // - `on_error` function to call whenever reconciliation fails.
-    Controller::new(crd_api.clone(), ListParams::default())
+    Controller::new(crd_api.clone(), Config::default())
         .run(reconcile, on_error, context)
         .for_each(|reconciliation_result| async move {
             match reconciliation_result {

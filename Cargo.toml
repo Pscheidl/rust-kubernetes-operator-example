@@ -2,7 +2,7 @@
 name = "operator"
 version = "0.1.0"
 authors = ["Pavel Pscheidl <pavel2@pscheidl.cz>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 tokio = { version = "1.0", features = [

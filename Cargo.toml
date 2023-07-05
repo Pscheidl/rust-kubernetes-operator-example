@@ -9,7 +9,7 @@ tokio = { version = "1.0", features = [
     "macros",
     "rt-multi-thread",
 ] } # Macros for easy project setup and testing, multi-threaded runtime for best utilization of resources
-kube = { version = "0.82", default-features = true, features = [
+kube = { version = "0.83", default-features = true, features = [
     "derive",
     "runtime",
 ] } # Library for talking to Kubernetes API

@@ -1,8 +1,9 @@
 use k8s_openapi::api::apps::v1::{Deployment, DeploymentSpec};
 use k8s_openapi::api::core::v1::{Container, ContainerPort, PodSpec, PodTemplateSpec};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector;
-use kube::api::{DeleteParams, ObjectMeta, PostParams};
+use kube::api::{DeleteParams, ObjectMeta, Patch, PatchParams, PostParams};
 use kube::{Api, Client, Error};
+use serde_json::json;
 use std::collections::BTreeMap;
 
 /// Creates a new deployment of `n` pods with the `inanimate/echo-server:latest` docker image inside,
@@ -66,6 +67,31 @@ pub async fn deploy(
     deployment_api
         .create(&PostParams::default(), &deployment)
         .await
+}
+
+pub async fn update(
+    client: Client,
+    name: &str,
+    replicas: i32,
+    namespace: &str,
+) -> Result<Deployment, Error> {
+    // Get the existing deployment
+    let deployment_api: Api<Deployment> = Api::namespaced(client, namespace);
+    let patch = json!({
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+            "name": name,
+        },
+        "spec": {
+            "replicas": replicas,
+        }
+    });
+    let params = PatchParams::apply("echo-operator").force();
+    let patch = Patch::Apply(&patch);
+    let deployment = deployment_api.patch(name, &params, &patch).await?;
+
+    Ok(deployment)
 }
 
 /// Deletes an existing deployment.

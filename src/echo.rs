@@ -7,14 +7,12 @@ use std::collections::BTreeMap;
 
 /// Creates a new deployment of `n` pods with the `inanimate/echo-server:latest` docker image inside,
 /// where `n` is the number of `replicas` given.
-///
+/// Note: It is assumed the resource does not already exists for simplicity. Returns an `Error` if it does.
 /// # Arguments
 /// - `client` - A Kubernetes client to create the deployment with.
 /// - `name` - Name of the deployment to be created
 /// - `replicas` - Number of pod replicas for the Deployment to contain
 /// - `namespace` - Namespace to create the Kubernetes Deployment in.
-///
-/// Note: It is assumed the resource does not already exists for simplicity. Returns an `Error` if it does.
 pub async fn deploy(
     client: Client,
     name: &str,

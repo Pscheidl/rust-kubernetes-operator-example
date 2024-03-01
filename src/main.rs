@@ -94,7 +94,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
     let name = echo.name_any(); // Name of the Echo resource is used to name the subresources as well.
 
     // Performs action as decided by the `determine_action` function.
-    return match determine_action(&echo) {
+    match determine_action(&echo) {
         EchoAction::Create => {
             // Creates a deployment with `n` Echo service pods, but applies a finalizer first.
             // Finalizer is applied first, as the operator might be shut down and restarted
@@ -125,7 +125,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
         }
         // The resource is already in desired state, do nothing and re-check after 10 seconds
         EchoAction::NoOp => Ok(Action::requeue(Duration::from_secs(10))),
-    };
+    }
 }
 
 /// Resources arrives into reconciliation queue in a certain state. This function looks at
@@ -135,7 +135,7 @@ async fn reconcile(echo: Arc<Echo>, context: Arc<ContextData>) -> Result<Action,
 /// # Arguments
 /// - `echo`: A reference to `Echo` being reconciled to decide next action upon.
 fn determine_action(echo: &Echo) -> EchoAction {
-    return if echo.meta().deletion_timestamp.is_some() {
+    if echo.meta().deletion_timestamp.is_some() {
         EchoAction::Delete
     } else if echo
         .meta()
@@ -146,7 +146,7 @@ fn determine_action(echo: &Echo) -> EchoAction {
         EchoAction::Create
     } else {
         EchoAction::NoOp
-    };
+    }
 }
 
 /// Actions to be taken when a reconciliation fails - for whatever reason.

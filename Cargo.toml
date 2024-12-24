@@ -9,12 +9,12 @@ tokio = { version = "1.0", features = [
     "macros",
     "rt-multi-thread",
 ] } # Macros for easy project setup and testing, multi-threaded runtime for best utilization of resources
-kube = { version = "0.97", default-features = true, features = [
+kube = { version = "0.98", default-features = true, features = [
     "derive",
     "runtime",
 ] } # Library for talking to Kubernetes API
-k8s-openapi = { version = "0.23", default-features = false, features = [
-    "v1_31",
+k8s-openapi = { version = "0.24", default-features = false, features = [
+    "v1_32",
 ] } # Kube-rs depends on k8s-openapi
 futures = "0.3"
 # All serde dependencies are used to serialize/deserialize CRDs and other Kubernetes-related structs

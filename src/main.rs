@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use futures::stream::StreamExt;
-use kube::runtime::watcher::Config;
 use kube::Resource;
 use kube::ResourceExt;
-use kube::{client::Client, runtime::controller::Action, runtime::Controller, Api};
+use kube::runtime::watcher::Config;
+use kube::{Api, client::Client, runtime::Controller, runtime::controller::Action};
 use tokio::time::Duration;
 
 use crate::crd::Echo;

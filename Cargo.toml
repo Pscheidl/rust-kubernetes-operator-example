@@ -2,23 +2,23 @@
 name = "operator"
 version = "0.1.0"
 authors = ["Pavel Pscheidl <pavel2@pscheidl.cz>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-tokio = { version = "1.45", features = [
+tokio = { version = "1", features = [
     "macros",
     "rt-multi-thread",
 ] } # Macros for easy project setup and testing, multi-threaded runtime for best utilization of resources
-kube = { version = "1.0.0", default-features = true, features = [
+kube = { version = "2", default-features = true, features = [
     "derive",
     "runtime",
 ] } # Library for talking to Kubernetes API
-k8s-openapi = { version = "0.25.0", default-features = false, features = [
-    "v1_33",
+k8s-openapi = { version = "0.26.1", default-features = false, features = [
+    "v1_34",
 ] } # Kube-rs depends on k8s-openapi
 futures = "0.3"
 # All serde dependencies are used to serialize/deserialize CRDs and other Kubernetes-related structs
 serde = "1"
-serde_json = "1.0"
+serde_json = "1"
 schemars = "0.8"
 thiserror = "2"    # Custom Error definitions and convenient error mappings
